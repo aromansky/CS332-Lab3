@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace CS332_Lab3
@@ -33,6 +34,13 @@ namespace CS332_Lab3
             Img = img;
             Width = img.Width;
             Height = img.Height;
+        }
+
+        public MyImage(string fname)
+        {
+            Img = new Bitmap(fname);
+            Width = Img.Width;
+            Height = Img.Height;
         }
 
         public void Lock()
@@ -91,6 +99,53 @@ namespace CS332_Lab3
         public MyImage Copy()
         {
             return new MyImage(new Bitmap(Img));
+        }
+
+        public void Save(string path)
+        {
+            try
+            {
+                ImageFormat format = GetImageFormat(path);
+                Img.Save(path, format);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка при сохранении изображения: {ex.Message}", ex);
+            }
+        }
+
+
+        private ImageFormat GetImageFormat(string fileName)
+        {
+            string extension = Path.GetExtension(fileName).ToLower();
+
+            switch (extension)
+            {
+                case ".bmp":
+                    return ImageFormat.Bmp;
+                case ".jpg":
+                case ".jpeg":
+                    return ImageFormat.Jpeg;
+                case ".png":
+                    return ImageFormat.Png;
+                case ".gif":
+                    return ImageFormat.Gif;
+                case ".tiff":
+                case ".tif":
+                    return ImageFormat.Tiff;
+                default:
+                    return ImageFormat.Bmp;
+            }
+        }
+
+        public static MyImage CreateWhiteImage(int width, int height)
+        {
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.Clear(Color.White);
+            }
+            return new MyImage(bitmap);
         }
     }
 }

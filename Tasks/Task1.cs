@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CS332_Lab2.Tasks
 {
-    public class Task1
+    public static class Task1
     {
         /// <summary>
         /// Тип заливки изображения
@@ -23,17 +23,19 @@ namespace CS332_Lab2.Tasks
         /// Заливает область изображение выбранной заливкой
         /// </summary>
         /// <param name="image">Исходное изображение</param>
+        /// <param name="point">Точка заливки</param>
         /// <param name="type">Тип заливки</param>
-        /// <param name="color">Цвет заливки</param>
+        /// <param name="oldColor">Старый цвет</param>
+        /// <param name="newColor">Новый цвет</param>
         /// <param name="pattern">Рисунок, которым заливать область</param>
         /// <returns>Изображение, результат работы заливки.</returns>
         /// <exception cref="ArgumentException">Возникает при передаче неизвествного типа заливки</exception>
-        public MyImage Fill(MyImage image, FillType type, Color color = default, MyImage pattern = null)
+        public static MyImage Fill(MyImage image, Point point, FillType type, Color oldColor = default, Color newColor = default, MyImage pattern = null)
         {
             switch (type) 
             { 
-                case FillType.FillColor: return FillWithColor(image, color);
-                case FillType.FillImage: return FillWithImage(image, pattern);
+                case FillType.FillColor: return FillWithColor(image, point, oldColor, newColor);
+                case FillType.FillImage: return FillWithImage(image, point, pattern);
                 default:
                     throw new ArgumentException($"Неизвестный тип заливки: {type}");
             }
@@ -45,9 +47,10 @@ namespace CS332_Lab2.Tasks
         /// Заливка области рисунка указанным цветом
         /// </summary>
         /// <param name="image">Исходное изображение</param>
-        /// <param name="color">Цвет заливки</param>
+        /// <param name="point">Точка заливки</param>
+        /// <param name="oldColor">Цвет заливки</param>
         /// <returns>Изображение, результат работы заливки</returns>
-        private MyImage FillWithColor(MyImage image, Color color)
+        private static MyImage FillWithColor(MyImage image, Point point, Color oldColor = default, Color newColor = default)
         {
             MyImage res = image.Copy();
 
@@ -61,9 +64,10 @@ namespace CS332_Lab2.Tasks
         /// Заливка области рисунка другим рисунком
         /// </summary>
         /// <param name="image">Исходное изображение</param>
+        /// <param name="point">Точка заливки</param>
         /// <param name="pattern">Рисунок, которым заливать область</param>
         /// <returns>Изображение, результат работы заливки</returns>
-        private MyImage FillWithImage(MyImage image, MyImage pattern)
+        private static MyImage FillWithImage(MyImage image, Point point, MyImage pattern)
         {
             MyImage res = image.Copy();
 
@@ -80,7 +84,7 @@ namespace CS332_Lab2.Tasks
         /// <param name="startPoint">Начальная точка границы</param>
         /// <param name="color">Цвет границы</param>
         /// <returns>Изображение, результат выделения границы области</returns>
-        public MyImage DrawBorder(MyImage image, Point startPoint, Color color)
+        public static MyImage DrawBorder(MyImage image, Point startPoint, Color color)
         {
             MyImage res = image.Copy();
 

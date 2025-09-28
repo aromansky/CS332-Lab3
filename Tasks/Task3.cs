@@ -44,7 +44,7 @@ namespace CS332_Lab2.Tasks
         /// <param name="point2">точка B</param>
         /// <param name="point3">Точка C</param>
         /// <returns>Изображение с окрашенным градиентом треугольником</returns>
-        public MyImage TriangleRasterization(MyImage image, ColorPoint point1, ColorPoint point2, ColorPoint point3)
+        public static MyImage TriangleRasterization(MyImage image, ColorPoint point1, ColorPoint point2, ColorPoint point3)
         {
             MyImage res = image.Copy();
 

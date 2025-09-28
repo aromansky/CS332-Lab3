@@ -30,7 +30,7 @@ namespace CS332_Lab2.Tasks
         /// <param name="color">Цвет отрезка</param>
         /// <returns>Изображение с нанесённым отрезком указаного цвета</returns>
         /// <exception cref="ArgumentException">Возникает при передаче несуществующего алгоритма</exception>
-        public MyImage DrawLine(MyImage image, LineAlgorithm algo, Point start, Point end, Color color)
+        public static MyImage DrawLine(MyImage image, LineAlgorithm algo, Point start, Point end, Color color)
         {
             switch (algo)
             {
@@ -50,7 +50,7 @@ namespace CS332_Lab2.Tasks
         /// <param name="end">Конечная точка</param>
         /// <param name="color">Цвет отрезка</param>
         /// <returns>Изображение с нанесённым отрезком указаного цвета</returns>
-        private MyImage DrawLineBresenham(MyImage image, Point start, Point end, Color color)
+        private static MyImage DrawLineBresenham(MyImage image, Point start, Point end, Color color)
         {
             MyImage res = image.Copy();
 
@@ -68,7 +68,7 @@ namespace CS332_Lab2.Tasks
         /// <param name="end">Конечная точка</param>
         /// <param name="color">Цвет отрезка</param>
         /// <returns>Изображение с нанесённым отрезком указаного цвета</returns>
-        private MyImage DrawLineWu(MyImage image, Point start, Point end, Color color)
+        private static MyImage DrawLineWu(MyImage image, Point start, Point end, Color color)
         {
             MyImage res = image.Copy();
 
