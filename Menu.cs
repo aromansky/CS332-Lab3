@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CS332_Lab2.Tasks;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,6 +16,11 @@ namespace CS332_Lab2
         public Menu()
         {
             InitializeComponent();
+        }
+
+        private void Menu_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
