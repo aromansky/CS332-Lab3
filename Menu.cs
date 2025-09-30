@@ -32,6 +32,20 @@ namespace CS332_Lab2
         public Menu()
         {
             InitializeComponent();
+            pictureBox.Paint += PictureBox1_Paint;
+        }
+
+        private void PictureBox1_Paint(object sender, PaintEventArgs e)
+        {
+            if (pictureBox.Image != null)
+            {
+                Rectangle destRect = GetPictureBoxImageRect();
+
+                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+
+                e.Graphics.DrawImage(pictureBox.Image, destRect);
+            }
         }
 
         private bool CheckImage()
@@ -370,42 +384,56 @@ namespace CS332_Lab2
         {
             if (draw)
             {
-                return new Point(0, 0);
+                return new Point(mousePos.X, mousePos.Y);
             }
-            float imageAspect = (float)source.Width / source.Height;
-            float boxAspect = (float)pictureBox.Width / pictureBox.Height;
 
-            int imageWidth, imageHeight;
-            int offsetX, offsetY;
+            if (source == null || pictureBox.Image == null)
+                return Point.Empty;
 
-            if (imageAspect > boxAspect)
+            Rectangle imageRect = GetPictureBoxImageRect();
+
+            if (!imageRect.Contains(mousePos))
+                return Point.Empty;
+
+            double scaleX = (double)source.Width / imageRect.Width;
+            double scaleY = (double)source.Height / imageRect.Height;
+
+            return new Point(
+                (int)((mousePos.X - imageRect.X) * scaleX),
+                (int)((mousePos.Y - imageRect.Y) * scaleY)
+            );
+        }
+
+        private Rectangle GetPictureBoxImageRect()
+        {
+            if (pictureBox.Image == null)
+                return Rectangle.Empty;
+
+            Size imageSize = pictureBox.Image.Size;
+            Size containerSize = pictureBox.ClientSize;
+
+            float imageAspect = (float)imageSize.Width / imageSize.Height;
+            float containerAspect = (float)containerSize.Width / containerSize.Height;
+
+            int width, height;
+            int x, y;
+
+            if (containerAspect > imageAspect)
             {
-                imageWidth = pictureBox.Width;
-                imageHeight = (int)(pictureBox.Width / imageAspect);
-                offsetX = 0;
-                offsetY = (pictureBox.Height - imageHeight) / 2;
+                height = containerSize.Height;
+                width = (int)(height * imageAspect);
+                x = (containerSize.Width - width) / 2;
+                y = 0;
             }
             else
             {
-                imageHeight = pictureBox.Height;
-                imageWidth = (int)(pictureBox.Height * imageAspect);
-                offsetX = (pictureBox.Width - imageWidth) / 2;
-                offsetY = 0;
+                width = containerSize.Width;
+                height = (int)(width / imageAspect);
+                x = 0;
+                y = (containerSize.Height - height) / 2;
             }
 
-            if (mousePos.X < offsetX || mousePos.X >= offsetX + imageWidth ||
-                mousePos.Y < offsetY || mousePos.Y >= offsetY + imageHeight)
-            {
-                return Point.Empty;
-            }
-
-            double scaleX = (double)source.Width / imageWidth;
-            double scaleY = (double)source.Height / imageHeight;
-
-            return new Point(
-                (int)((mousePos.X - offsetX) * scaleX),
-                (int)((mousePos.Y - offsetY) * scaleY)
-            );
+            return new Rectangle(x, y, width, height);
         }
 
         private void pictureBox_newcolor_Click(object sender, EventArgs e)
