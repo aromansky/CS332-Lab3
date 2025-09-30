@@ -335,7 +335,7 @@ namespace CS332_Lab2
             }
             if (task3)
             {
-                result.Img.SetPixel(imageCoord.X, imageCoord.Y, pictureBox_newcolor.BackColor);
+                result.Img.SetPixel(imageCoord.X, imageCoord.Y, pictureBox_oldcolor.BackColor);
                 UpdateDisplay();
             }
         }
