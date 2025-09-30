@@ -143,7 +143,6 @@ namespace CS332_Lab2.Tasks
             return res;
         }
 
-
         /// <summary>
         /// Вспомогательная функция для обмена значений двух переменных
         /// </summary>
@@ -154,8 +153,9 @@ namespace CS332_Lab2.Tasks
             b = temp;
         }
 
+
         /// <summary>
-        /// Реализация рисования отрезка алгоритмом Брезенхейма
+        /// Реализация рисования отрезка алгоритмом Ву
         /// </summary>
         /// <param name="image">Исходное изображение</param>
         /// <param name="start">Начальная точка</param>
@@ -275,7 +275,6 @@ namespace CS332_Lab2.Tasks
 
             Color blendedColor = Color.FromArgb(red, green, blue);
             image.SetPixel(x, y, blendedColor);
-        
         }
     }
 }
