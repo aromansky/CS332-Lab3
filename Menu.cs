@@ -168,7 +168,7 @@ namespace CS332_Lab2
                 try
                 {
                     MyImage pattern = new MyImage(openFileDialog.FileName);
-                    result = Task1.Fill(source, lastPoint, Task1.FillType.FillImage, pattern: pattern);
+                    result = Task1.Fill(result, lastPoint, Task1.FillType.FillImage, pattern: pattern, oldColor: pictureBox_oldcolor.BackColor);
 
                     UpdateDisplay();
                 }
@@ -182,25 +182,26 @@ namespace CS332_Lab2
 
         private void button_bolder_Click(object sender, EventArgs e)
         {
-            result = Task1.DrawBorder(source, lastPoint, pictureBox_newcolor.BackColor);
+            List<Point> points = Task1.GetBorder(result, penultimatePoint, pictureBox_oldcolor.BackColor);
+            result = Task1.DrawPixels(result, pictureBox_newcolor.BackColor, points);
             UpdateDisplay();
         }
 
         private void button_color_Click(object sender, EventArgs e)
         {
-            result = Task1.Fill(source, lastPoint, Task1.FillType.FillColor, oldColor: pictureBox_oldcolor.BackColor, newColor: pictureBox_newcolor.BackColor);
+            result = Task1.Fill(result, lastPoint, Task1.FillType.FillColor, oldColor: pictureBox_oldcolor.BackColor, newColor: pictureBox_newcolor.BackColor);
             UpdateDisplay();
         }
 
         private void button_bresenham_Click(object sender, EventArgs e)
         {
-            result = Task2.DrawLine(source, Task2.LineAlgorithm.Bresenham, lastPoint, penultimatePoint, Color.Black);
+            result = Task2.DrawLine(result, Task2.LineAlgorithm.Bresenham, lastPoint, penultimatePoint, Color.Black);
             UpdateDisplay();
         }
 
         private void button_wu_Click(object sender, EventArgs e)
         {
-            result = Task2.DrawLine(source, Task2.LineAlgorithm.Wu, lastPoint, penultimatePoint, Color.Black);
+            result = Task2.DrawLine(result, Task2.LineAlgorithm.Wu, lastPoint, penultimatePoint, Color.Black);
             UpdateDisplay();
         }
 
@@ -219,6 +220,10 @@ namespace CS332_Lab2
 
         private void loadImageToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ChangeEnabledTask1(false);
+            ChangeEnabledTask1(false);
+            ChangeEnabledTask1(false);
+
             draw = false;
             pictureBox.Enabled = false;
 
@@ -244,6 +249,10 @@ namespace CS332_Lab2
 
         private void saveImageToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ChangeEnabledTask1(false);
+            ChangeEnabledTask1(false);
+            ChangeEnabledTask1(false);
+
             if (result == null)
             {
                 MessageBox.Show("Сначала нарисуйте или загрузите изображение!");
@@ -253,9 +262,9 @@ namespace CS332_Lab2
             draw = false;
             pictureBox.Enabled = false;
 
-            saveFileDialog.Filter = "BMP Image|*.bmp|JPEG Image|*.jpg|PNG Image|*.png|All files|*.*";
+            saveFileDialog.Filter = "PNG Image|*.png|JPEG Image|*.jpg|BMP Image|*.bmp|All files|*.*";
             saveFileDialog.Title = "Сохранить изображение";
-            saveFileDialog.DefaultExt = "bmp";
+            saveFileDialog.DefaultExt = "png";
 
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -278,6 +287,10 @@ namespace CS332_Lab2
             draw = false;
             pictureBox.Enabled = false;
 
+            ChangeEnabledTask1(false);
+            ChangeEnabledTask2(false);
+            ChangeEnabledTask3(false);
+
             if (!CheckImage()) return;
 
             result = source.Copy();
@@ -298,7 +311,7 @@ namespace CS332_Lab2
             {
                 if (!draw)
                 {
-                    pictureBox_oldcolor.BackColor = source.Img.GetPixel(imageCoord.X, imageCoord.Y);
+                    pictureBox_oldcolor.BackColor = result.Img.GetPixel(imageCoord.X, imageCoord.Y);
                 }
             }
             if (task2)
@@ -325,6 +338,10 @@ namespace CS332_Lab2
 
         private void drawToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ChangeEnabledTask1(false);
+            ChangeEnabledTask1(false);
+            ChangeEnabledTask1(false);
+
             pictureBox.Enabled = true;
 
             result = MyImage.CreateWhiteImage(pictureBox.Width, pictureBox.Height);

@@ -35,7 +35,7 @@ namespace CS332_Lab2.Tasks
             switch (type) 
             { 
                 case FillType.FillColor: return FillWithColor(image, point, oldColor, newColor);
-                case FillType.FillImage: return FillWithImage(image, point, pattern);
+                case FillType.FillImage: return FillWithImage(image, point, oldColor, pattern);
                 default:
                     throw new ArgumentException($"Неизвестный тип заливки: {type}");
             }
@@ -48,15 +48,46 @@ namespace CS332_Lab2.Tasks
         /// </summary>
         /// <param name="image">Исходное изображение</param>
         /// <param name="point">Точка заливки</param>
-        /// <param name="oldColor">Цвет заливки</param>
+        /// <param name="oldColor">Исходный цвет заливки</param>
+        /// <param name="newColor">Новый цвет заливки</param>
         /// <returns>Изображение, результат работы заливки</returns>
         private static MyImage FillWithColor(MyImage image, Point point, Color oldColor = default, Color newColor = default)
         {
             MyImage res = image.Copy();
 
-            // TODO
+            res.Lock();
+
+            FillLine(res, (point.X, point.Y), oldColor, newColor);
+
+            res.Unlock();
 
             return res;
+        }
+
+        /// <summary>
+        /// Рекурсивный алгоритм заливки на основе серий пикселов.
+        /// </summary>
+        private static void FillLine(MyImage image, (int x, int y) point, Color oldColor, Color newColor)
+        {
+            if (point.y < 0 || point.y == image.Height - 1 || 
+                image.GetRGB(point.x, point.y) == newColor || image.GetRGB(point.x, point.y) != oldColor)
+            {
+                return;
+            }
+
+            int leftBorder = point.x;
+            int rightBorder = point.x;
+            int y = point.y;
+
+            while (leftBorder >= 0 && image.GetRGB(leftBorder, y) == oldColor) leftBorder--;
+            while (rightBorder <= image.Width && image.GetRGB(rightBorder, y) == oldColor) rightBorder++;
+
+            leftBorder++; rightBorder--;
+
+            for (int i = leftBorder; i <= rightBorder; i++) image.SetPixel(i, y, newColor);
+
+            for (int i = leftBorder; i <= rightBorder; i++) FillLine(image, (i, y + 1), oldColor, newColor);
+            for (int i = leftBorder; i <= rightBorder; i++) FillLine(image, (i, y - 1), oldColor, newColor);
         }
 
 
@@ -66,14 +97,47 @@ namespace CS332_Lab2.Tasks
         /// <param name="image">Исходное изображение</param>
         /// <param name="point">Точка заливки</param>
         /// <param name="pattern">Рисунок, которым заливать область</param>
+        /// /// <param name="oldColor">Исходный цвет заливки</param>
         /// <returns>Изображение, результат работы заливки</returns>
-        private static MyImage FillWithImage(MyImage image, Point point, MyImage pattern)
+        private static MyImage FillWithImage(MyImage image, Point point, Color oldColor, MyImage pattern)
         {
             MyImage res = image.Copy();
 
-            // TODO
+            res.Lock();
+            pattern.Lock();
+
+            FillImage(res, (point.X, point.Y), oldColor, pattern);
+
+            res.Unlock();
+            pattern.Unlock();
 
             return res;
+        }
+
+        /// <summary>
+        /// Заливка области рисунка другим рисунком
+        /// </summary>
+        private static void FillImage(MyImage image, (int x, int y) point, Color oldColor, MyImage pattern)
+        {
+            if (point.y < 0 || point.y == image.Height - 1 ||
+                image.GetRGB(point.x, point.y) == pattern.GetRGB(point.x % pattern.Width, point.y % (pattern.Height - 1)))
+            {
+                return;
+            }
+
+            int leftBorder = point.x;
+            int rightBorder = point.x;
+            int y = point.y;
+
+            while (leftBorder >= 0 && image.GetRGB(leftBorder, y) == oldColor) leftBorder--;
+            while (rightBorder <= image.Width && image.GetRGB(rightBorder, y) == oldColor) rightBorder++;
+
+            leftBorder++; rightBorder--;
+
+            for (int i = leftBorder; i <= rightBorder; i++) image.SetPixel(i, y, pattern.GetRGB(i % pattern.Width, y % (pattern.Height - 1)));
+
+            for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y + 1), oldColor, pattern);
+            for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y - 1), oldColor, pattern);
         }
 
 
@@ -84,11 +148,201 @@ namespace CS332_Lab2.Tasks
         /// <param name="startPoint">Начальная точка границы</param>
         /// <param name="color">Цвет границы</param>
         /// <returns>Изображение, результат выделения границы области</returns>
-        public static MyImage DrawBorder(MyImage image, Point startPoint, Color color)
+        public static List<Point> GetBorder(MyImage image, Point startPoint, Color color)
+        {
+            List<Point> res = new List<Point>();
+
+            image.Lock();
+
+            Point curPoint = new Point(startPoint.X, startPoint.Y);
+            
+
+            do
+            {
+                bool flag = false;
+                (int x, int y) current = (curPoint.X, curPoint.Y);
+                List<(int X, int Y)> neighbours = GetClockwiseNeighbors(image, current);
+
+                foreach ((int X, int Y) neighbour in neighbours)
+                {
+                    if (image.GetRGB(neighbour.X, neighbour.Y) != image.GetRGB(current.x, current.y)) continue;
+                    Point rightPoint = GetRightPixel(current, neighbour);
+                    Point next = new Point(neighbour.X, neighbour.Y);
+                    if (image.GetRGB(rightPoint.X, rightPoint.Y) == color && !res.Contains(next))
+                    {
+                        res.Add(next);
+                        curPoint = next;
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag) continue;
+                image.Unlock();
+                return new List<Point>();
+
+            }
+            while (curPoint != startPoint);
+
+            image.Unlock();
+
+            return res;
+        }
+
+
+        /// <summary>
+        /// Возвращает соседние точки, добавленные по часовой стрелке
+        /// </summary>
+        /// <param name="image">Изображение</param>
+        /// <param name="point">Точка</param>
+        /// <returns>Соседи точки</returns>
+        private static List<(int X, int Y)> GetClockwiseNeighbors(MyImage image, (int X, int Y) point)
+        {
+            List<(int X, int Y)> neighbours = new List<(int X, int Y)> ();
+            var (x, y) = (point.X, point.Y);
+
+            (int X, int Y)[] possibleNeighbours = new (int X, int Y)[]
+            {
+                (x + 1, y - 1),
+                (x + 1, y),
+                (x + 1, y + 1),
+                (x, y + 1),     
+                (x - 1, y + 1), 
+                (x - 1, y),  
+                (x - 1, y - 1),
+                (x, y - 1)    
+            };
+
+            foreach ((int X, int Y) neighbour in possibleNeighbours)
+            {
+                if (CheckPixel(image, neighbour))
+                {
+                    neighbours.Add(neighbour);
+                }
+            }
+
+            return neighbours;
+        }
+
+        /// <summary>
+        /// Закрашивает выбранные точки указанным цветом
+        /// </summary>
+        /// <param name="image">Исходное изображение</param>
+        /// <param name="color">Цвет заливки</param>
+        /// <param name="points">Набор точек для заливки</param>
+        /// <returns>Изображение с закрашенными точками</returns>
+        public static MyImage DrawPixels(MyImage image, Color color, List<Point> points)
         {
             MyImage res = image.Copy();
 
+            res.Lock();
+
+            foreach (Point p in points) res.SetPixel(p.X, p.Y, color);
+
+            res.Unlock();
+
             return res;
+        }
+
+        /// <summary>
+        /// Получает координаты правого пикселя относительно направления движения. Работает только с 4-х смежными пикселями
+        /// </summary>
+        /// <param name="current">Текущий пиксель</param>
+        /// <param name="target">Следующий пиксель</param>
+        /// <returns>Координаты правого пикселя</returns>
+        private static Point GetRightPixel((int X, int Y) current, (int X, int Y) target)
+        {
+            if (current == target)
+                throw new ArgumentException("Точки не могут совпадать");
+
+            int dx = Math.Abs(current.X - target.X);
+            int dy = Math.Abs(current.Y - target.Y);
+            if (dx > 1 || dy > 1)
+                throw new ArgumentException("Точки должны быть 8-смежными соседями");
+
+            if (current.Y == target.Y)
+            {
+                if (current.X > target.X) return new Point(target.X, current.Y - 1);
+                else return new Point(target.X, current.Y + 1);
+            }
+            else if (current.X == target.X)
+            {
+                if (current.Y < target.Y) return new Point(current.X - 1, target.Y);
+                else return new Point(current.X + 1, target.Y);
+            }
+            else if (current.X < target.X)
+            {
+                if (current.Y < target.Y) return new Point(current.X, current.Y + 1);
+                else return new Point(current.X + 1, current.Y);
+            }
+            else
+            {
+                if (current.Y > target.Y) return new Point(current.X, current.Y - 1);
+                else return new Point(current.X - 1, current.Y);
+            }
+        }
+
+        /// <summary>
+        /// Получает координаты правого пикселя относительно направления движения. Работает только с 4-х смежными пикселями
+        /// </summary>
+        /// <param name="current">Текущий пиксель</param>
+        /// <param name="target">Следующий пиксель</param>
+        /// <returns>Координаты правого пикселя</returns>
+        private static Point GetRightPixel(Point current, Point target)
+        {
+            if (current == target)
+                throw new ArgumentException("Точки не могут совпадать");
+
+            int dx = Math.Abs(current.X - target.X);
+            int dy = Math.Abs(current.Y - target.Y);
+            if (dx > 1 || dy > 1)
+                throw new ArgumentException("Точки должны быть 8-смежными соседями");
+
+            if (current.Y == target.Y)
+            {
+                if (current.X > target.X) return new Point(current.X, current.Y - 1);
+                else return new Point(current.X, current.Y + 1);
+            }
+            else if (current.X == target.X)
+            {
+                if (current.Y < target.Y) return new Point(current.X - 1, current.Y);
+                else return new Point(current.X + 1, current.Y);
+            }
+            else if (current.X < target.X)
+            {
+                if (current.Y < target.Y) return new Point(current.X, current.Y + 1);
+                else return new Point(current.X, current.Y - 1);
+            }
+            else
+            {
+                if (current.Y > target.Y) return new Point(current.X, current.Y - 1);
+                else return new Point(current.X - 1, current.Y);
+            }
+        }
+
+        /// <summary>
+        /// Проверяет, принадлежит ли точка изображению
+        /// </summary>
+        /// <param name="image">Изображение</param>
+        /// <param name="point">Точка</param>
+        /// <returns>True - если принадлежит, иначе False</returns>
+        private static bool CheckPixel(MyImage image, Point point)
+        {
+            var (x, y) = (point.X, point.Y);
+
+            return (x >= 0) && (x < image.Width) && (y >= 0) && (y  < image.Height);
+        }
+
+        /// <summary>
+        /// Проверяет, принадлежит ли точка изображению
+        /// </summary>
+        /// <param name="image">Изображение</param>
+        /// <param name="point">Точка</param>
+        /// <returns>True - если принадлежит, иначе False</returns>
+        private static bool CheckPixel(MyImage image, (int X, int Y) point)
+        {
+            var (x, y) = (point.X, point.Y);
+
+            return (x >= 0) && (x < image.Width) && (y >= 0) && (y < image.Height);
         }
 
     }
