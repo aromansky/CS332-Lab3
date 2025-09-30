@@ -7,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -28,7 +29,7 @@ namespace CS332_Lab2
         private bool task3 = false;
 
         private bool draw = false;
-
+        private Point lastPointDraw = Point.Empty;
         public Menu()
         {
             InitializeComponent();
@@ -363,22 +364,33 @@ namespace CS332_Lab2
             draw = true;
         }
 
-
         private void pictureBox_MouseMove(object sender, MouseEventArgs e)
         {
-            if (draw)
+            if (draw && e.Button == MouseButtons.Left)
             {
-                if (e.Button == MouseButtons.Left)
+                Point loc = e.Location;
+                if (loc.X < pictureBox.Width && loc.X > 0 && loc.Y < pictureBox.Height && loc.Y > 0)
                 {
-                    Point loc = e.Location;
-                    if (loc.X < pictureBox.Width && loc.X > 0 && loc.Y < pictureBox.Height && loc.Y > 0)
+                    if (lastPointDraw != Point.Empty)
                     {
-                        result.Img.SetPixel(loc.X, loc.Y, Color.Black);
+                        using (Graphics g = Graphics.FromImage(result.Img))
+                        using (Pen pen = new Pen(Color.Black, 1))
+                        {
+                            g.DrawLine(pen, lastPointDraw, loc);
+                        }
                         UpdateDisplay();
                     }
+
+                    lastPointDraw = loc;
                 }
             }
         }
+
+        private void pictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            lastPointDraw = Point.Empty;
+        }
+
 
         private Point GetCoordinates(Point mousePos)
         {
