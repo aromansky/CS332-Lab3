@@ -54,7 +54,91 @@ namespace CS332_Lab2.Tasks
         {
             MyImage res = image.Copy();
 
-            // TODO
+            res.Lock();
+
+            int x0 = start.X;
+            int y0 = start.Y;
+            int x1 = end.X;
+            int y1 = end.Y;
+
+            // Если линия вертикальная или горизонтальная, используем простой алгоритм
+            if (x0 == x1)
+            {
+                // Вертикальная линия
+                int minY = Math.Min(y0, y1);
+                int maxY = Math.Max(y0, y1);
+                for (int i = minY; i <= maxY; i++)
+                {
+                    res.SetPixel(x0, i, color);
+                }
+                res.Unlock();
+                return res;
+            }
+
+            if (y0 == y1)
+            {
+                // Горизонтальная линия
+                int minX = Math.Min(x0, x1);
+                int maxX = Math.Max(x0, x1);
+                for (int x = minX; x <= maxX; x++)
+                {
+                    res.SetPixel(x, y0, color);
+                }
+                res.Unlock();
+                return res;
+            }
+
+            // Определяем, в каком октанте находится линия и нормализуем координаты
+            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
+
+            if (steep)
+            {
+                // Если линия крутая, меняем x и y местами
+                Swap(ref x0, ref y0);
+                Swap(ref x1, ref y1);
+            }
+
+            if (x0 > x1)
+            {
+                // Обеспечиваем рисование слева направо
+                Swap(ref x0, ref x1);
+                Swap(ref y0, ref y1);
+            }
+
+            int deltax = x1 - x0;
+            int deltay = Math.Abs(y1 - y0);
+            int error = 0;
+            int deltaerr = deltay;
+            int y = y0;
+            int diry = y1 - y0;
+
+            if (diry > 0)
+                diry = 1;
+            else
+                diry = -1;
+
+            // Основной цикл алгоритма Брезенхейма
+            for (int x = x0; x <= x1; x++)
+            {
+                if (steep)
+                {
+                    // Если меняли местами, восстанавливаем координаты
+                    res.SetPixel(y, x, color);
+                }
+                else
+                {
+                    res.SetPixel(x, y, color);
+                }
+
+                error += deltaerr;
+                if (error >= (deltax + 1))
+                {
+                    y += diry;
+                    error -= (deltax + 1);
+                }
+            }
+
+            res.Unlock();
 
             return res;
         }
