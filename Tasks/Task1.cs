@@ -155,8 +155,9 @@ namespace CS332_Lab2.Tasks
             image.Lock();
 
             Point curPoint = new Point(startPoint.X, startPoint.Y);
-            
+            Point next = Point.Empty;
 
+            List<Point> predRightPoints = new List<Point>();
             do
             {
                 bool flag = false;
@@ -166,15 +167,45 @@ namespace CS332_Lab2.Tasks
                 foreach ((int X, int Y) neighbour in neighbours)
                 {
                     if (image.GetRGB(neighbour.X, neighbour.Y) != image.GetRGB(current.x, current.y)) continue;
-                    Point rightPoint = GetRightPixel(current, neighbour);
-                    Point next = new Point(neighbour.X, neighbour.Y);
+                    List<Point> rightPoints = GetRightPixel(current, neighbour);
+                    if (rightPoints.Count == 2)
+                    {
+                        var (x1, y1) = (rightPoints[0].X, rightPoints[0].Y);
+                        var (x2, y2) = (rightPoints[1].X, rightPoints[1].Y);
+                        if (image.GetRGB(x1, y1) != image.GetRGB(x2, y2) || image.GetRGB(x1, y1) != color) continue;                       
+                    }
+                    Point rightPoint = rightPoints[0];
+                    next = new Point(neighbour.X, neighbour.Y);
+                    
                     if (image.GetRGB(rightPoint.X, rightPoint.Y) == color && !res.Contains(next))
                     {
-                        res.Add(next);
-                        curPoint = next;
-                        flag = true;
-                        break;
+                        
+                        //image.SetPixel(rightPoint.X, rightPoint.Y, Color.Blue);
+                        
+                        if (predRightPoints.Count == 0)
+                        {
+                            res.Add(next);
+                            curPoint = next;
+                            flag = true;
+                            predRightPoints = rightPoints;
+                            break;
+                        }
+                        else
+                        {
+                            if (CheckConnect(predRightPoints, rightPoints, color))
+                            {
+                                res.Add(next);
+                                curPoint = next;
+                                flag = true;
+                                predRightPoints = rightPoints;
+                                //image.SetPixel(rightPoint.X, rightPoint.Y, Color.Blue);
+                                break;
+                            }
+                        }
+                                
                     }
+                    
+                    
                 }
                 if (flag) continue;
                 image.Unlock();
@@ -186,6 +217,18 @@ namespace CS332_Lab2.Tasks
             image.Unlock();
 
             return res;
+        }
+
+        private static bool CheckConnect(List<Point> l1, List<Point> l2, Color color)
+        {
+            foreach (Point p1 in l1)
+            {
+                foreach (Point p2 in l2)
+                {
+                    if (Math.Abs(p1.X - p2.X) <= 1 && Math.Abs(p1.Y - p2.Y) <= 1) return true;
+                }
+            }
+            return false;
         }
 
 
@@ -249,7 +292,7 @@ namespace CS332_Lab2.Tasks
         /// <param name="current">Текущий пиксель</param>
         /// <param name="target">Следующий пиксель</param>
         /// <returns>Координаты правого пикселя</returns>
-        private static Point GetRightPixel((int X, int Y) current, (int X, int Y) target)
+        private static List<Point> GetRightPixel((int X, int Y) current, (int X, int Y) target)
         {
             if (current == target)
                 throw new ArgumentException("Точки не могут совпадать");
@@ -259,26 +302,46 @@ namespace CS332_Lab2.Tasks
             if (dx > 1 || dy > 1)
                 throw new ArgumentException("Точки должны быть 8-смежными соседями");
 
+            List<Point> res = new List<Point>();
+
             if (current.Y == target.Y)
             {
-                if (current.X > target.X) return new Point(target.X, current.Y - 1);
-                else return new Point(target.X, current.Y + 1);
+                if (current.X > target.X)
+                {
+                    res.Add(new Point(current.X, current.Y - 1));
+                    res.Add(new Point(target.X, current.Y - 1));
+                }
+                else
+                {
+                    res.Add(new Point(current.X, current.Y + 1));
+                    res.Add(new Point(target.X, current.Y + 1));
+                }
             }
             else if (current.X == target.X)
             {
-                if (current.Y < target.Y) return new Point(current.X - 1, target.Y);
-                else return new Point(current.X + 1, target.Y);
+                if (current.Y < target.Y)
+                {
+                    res.Add(new Point(current.X - 1, current.Y));
+                    res.Add(new Point(current.X - 1, target.Y));
+                }
+                else
+                {
+                    res.Add(new Point(current.X + 1, current.Y));
+                    res.Add(new Point(current.X + 1, target.Y));
+                }
             }
             else if (current.X < target.X)
             {
-                if (current.Y < target.Y) return new Point(current.X, current.Y + 1);
-                else return new Point(current.X + 1, current.Y);
+                if (current.Y < target.Y) res.Add(new Point(current.X, current.Y + 1));
+                else res.Add(new Point(current.X + 1, current.Y));
             }
             else
             {
-                if (current.Y > target.Y) return new Point(current.X, current.Y - 1);
-                else return new Point(current.X - 1, current.Y);
+                if (current.Y > target.Y) res.Add(new Point(current.X, current.Y - 1));
+                else res.Add(new Point(current.X - 1, current.Y));
             }
+
+            return res;
         }
 
         /// <summary>
