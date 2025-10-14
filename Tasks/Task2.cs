@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CS332_Lab2.Tasks
+namespace CS332_Lab3
 {
     public class Task2
     {

@@ -1,12 +1,11 @@
-﻿using CS332_Lab3;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CS332_Lab2.Tasks
+namespace CS332_Lab3
 {
     public static class Task1
     {
@@ -106,7 +105,7 @@ namespace CS332_Lab2.Tasks
             res.Lock();
             pattern.Lock();
 
-            FillImage(res, (point.X, point.Y), oldColor, pattern);
+            FillImage(res, (point.X, point.Y), oldColor, pattern, point.X, point.Y);
 
             res.Unlock();
             pattern.Unlock();
@@ -117,27 +116,61 @@ namespace CS332_Lab2.Tasks
         /// <summary>
         /// Заливка области рисунка другим рисунком
         /// </summary>
-        private static void FillImage(MyImage image, (int x, int y) point, Color oldColor, MyImage pattern)
+        //private static void FillImage(MyImage image, (int x, int y) point, Color oldColor, MyImage pattern)
+        //{
+        //    if (point.y < 0 || point.y == image.Height - 1 ||
+        //        image.GetRGB(point.x, point.y) == pattern.GetRGB(point.x % pattern.Width, point.y % (pattern.Height - 1)))
+        //    {
+        //        return;
+        //    }
+
+        //    int leftBorder = point.x;
+        //    int rightBorder = point.x;
+        //    int y = point.y;
+
+        //    while (leftBorder >= 0 && image.GetRGB(leftBorder, y) == oldColor) leftBorder--;
+        //    while (rightBorder <= image.Width && image.GetRGB(rightBorder, y) == oldColor) rightBorder++;
+
+        //    leftBorder++; rightBorder--;
+
+        //    for (int i = leftBorder; i <= rightBorder; i++) image.SetPixel(i, y, pattern.GetRGB(i % pattern.Width, y % (pattern.Height - 1)));
+
+        //    for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y + 1), oldColor, pattern);
+        //    for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y - 1), oldColor, pattern);
+        //}
+
+        private static void FillImage(MyImage image, (int x, int y) point, Color oldColor, MyImage pattern, int xx = 0, int yy = 0)
         {
-            if (point.y < 0 || point.y == image.Height - 1 ||
-                image.GetRGB(point.x, point.y) == pattern.GetRGB(point.x % pattern.Width, point.y % (pattern.Height - 1)))
+            if (point.y < 0 || point.y == image.Height - 1)
             {
                 return;
             }
 
             int leftBorder = point.x;
             int rightBorder = point.x;
+
             int y = point.y;
+            int patternY = NormalizeCoordinate(y, yy, pattern.Height);
 
             while (leftBorder >= 0 && image.GetRGB(leftBorder, y) == oldColor) leftBorder--;
             while (rightBorder <= image.Width && image.GetRGB(rightBorder, y) == oldColor) rightBorder++;
 
             leftBorder++; rightBorder--;
 
-            for (int i = leftBorder; i <= rightBorder; i++) image.SetPixel(i, y, pattern.GetRGB(i % pattern.Width, y % (pattern.Height - 1)));
+            for (int i = leftBorder; i <= rightBorder; i++)
+            {
+                int patternX = NormalizeCoordinate(i, xx, pattern.Width);
+                image.SetPixel(i, y, pattern.GetRGB(patternX, patternY));
+            }
 
-            for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y + 1), oldColor, pattern);
-            for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y - 1), oldColor, pattern);
+            for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y + 1), oldColor, pattern, xx, yy);
+            for (int i = leftBorder; i <= rightBorder; i++) FillImage(image, (i, y - 1), oldColor, pattern, xx, yy);
+        }
+
+        private static int NormalizeCoordinate(int coord, int offset, int size)
+        {
+            int normalized = (coord - offset) % size;
+            return coord < offset ? size + normalized - 1 : normalized;
         }
 
 

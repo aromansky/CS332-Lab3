@@ -1,4 +1,4 @@
-﻿namespace CS332_Lab2
+﻿namespace CS332_Lab3
 {
     partial class Menu
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace CS332_Lab2
+namespace CS332_Lab3
 {
     internal static class Program
     {

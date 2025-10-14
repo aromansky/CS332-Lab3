@@ -1,6 +1,4 @@
-﻿using CS332_Lab2.Tasks;
-using CS332_Lab3;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,7 +12,7 @@ using System.Windows.Forms;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 
-namespace CS332_Lab2
+namespace CS332_Lab3
 {
     public partial class Menu : Form
     {
